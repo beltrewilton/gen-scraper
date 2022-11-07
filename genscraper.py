@@ -31,14 +31,24 @@ class GenScraper:
 
         return True
 
-    def publist(self, url):
+    def publist(self, url, page_depth):
         publist = []
         try:
             self.driver.get(url)
             time.sleep(np.random.uniform(3, 4))
-            ahrefs = self.driver.find_elements(By.CSS_SELECTOR, "div.thumb-title")
-            for refs in ahrefs:
-                publist.append(refs.find_element(By.TAG_NAME, 'a').get_attribute('href'))
+            for p in range(page_depth):
+                print('Scraping page # {}'.format(p))
+                positions = self.driver.find_elements(By.CSS_SELECTOR, "div.thumb-title")
+                for pos in positions:
+                    publist.append(pos.find_element(By.TAG_NAME, 'a').get_attribute('href'))
+                ul = self.driver.find_elements(By.CSS_SELECTOR, 'ul.default-pagination')[2]
+                li = ul.find_element(By.CSS_SELECTOR, 'li.nav-next')
+                next = li.find_element(By.TAG_NAME, 'a')
+                try:
+                    next.click()   # this move to the next page ...
+                except Exception as ex:
+                    print(ex)
+                time.sleep(np.random.uniform(3, 4))
         except Exception as ex:
             print(ex)
 
@@ -46,7 +56,7 @@ class GenScraper:
 
     def work(self):
         url = 'https://dominicanasolidaria.org/directorio/vacantes/'
-        publist = self.publist(url)
+        publist = self.publist(url, 5)
         for pub in publist:
             self.driver.get(pub)
             time.sleep(np.random.uniform(3, 4))
